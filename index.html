@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Liz CakeShop | Repostería artesanal</title>
+  <meta name="description" content="Pasteles, cinnamon rolls, brownies y postres artesanales hechos con amor. Pedidos personalizados en Nuevo León.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="checkout.css">
+</head>
+<body>
+
+  <!-- Íconos reutilizables (logo, carrito, etc.) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="logo-icon" viewBox="0 0 60 84" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M26 6c12-6 22 6 11 13-8 5-16 3-12 12 3 7 14 5 17 14"/>
+      <path d="M18 54l4 26h18l4-26"/>
+      <path d="M30 40v40"/>
+    </symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zm-3 6h12l-1 12H7L6 9z"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 11l18-8-6 18-3.5-7.5L3 11z"/></symbol>
+  </svg>
+
+  <!-- ============ 1. HEADER ============ -->
+   <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="Liz CakeShop, ir al inicio">
+      <img class="brand-logo" src="img/logo.png" alt="Liz CakeShop">
+    </a>
+
+    <nav id="menu" class="menu" aria-label="Navegación principal">
+      <a href="#inicio" class="activo">Inicio</a>
+      <a href="#nosotros">Nosotros</a>
+      <a href="#catalogo">Catálogo y precios</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+
+    <div class="header-acciones">
+      <button type="button" class="btn-carrito" data-abrir-carrito aria-label="Abrir carrito">
+        <svg aria-hidden="true"><use href="#i-cart"/></svg>
+        <span id="carrito-contador" class="contador" hidden>0</span>
+      </button>
+      <button type="button" id="btn-menu" class="btn-menu" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ 2. HERO ============ -->
+    <section id="inicio" class="hero">
+      <div class="hero-texto">
+        <img class="hero-logo" src="img/logo.png" alt="Liz CakeShop">
+        <h1>Pasteles y postres hechos con amor</h1>
+        <p>Repostería artesanal en Nuevo León: cinnamon rolls, brownies, cupcakes y pasteles totalmente personalizados para tus momentos especiales.</p>
+        <div class="hero-botones">
+          <a class="btn" href="#catalogo">Ver catálogo</a>
+          <button type="button" class="btn btn-suave" data-abrir-chat>Cotizar pedido</button>
+        </div>
+      </div>
+      <figure class="foto hero-foto">
+        <img src="img/hero.jpg" alt="Cinnamon rolls con crema y chocolate recién hechos" fetchpriority="high">
+      </figure>
+    </section>
+
+    <!-- ============ 3. NOSOTROS ============ -->
+    <section id="nosotros" class="nosotros">
+      <article class="bloque">
+        <figure class="foto"><img src="img/nosotros-pastel.jpg" alt="Pastel de dos pisos decorado con flores" loading="lazy"></figure>
+        <div class="bloque-texto">
+          <p class="burbuja">¡Bienvenid@! ¿Quiénes somos?</p>
+          <h2>Repostería artesanal</h2>
+          <p>En LizCakeShop somos una repostería especializada en postres artesanales y pedidos totalmente personalizados.</p>
+          <p>Nuestra especialidad:</p>
+          <ul>
+            <li>Cinnamon rolls</li>
+            <li>Cupcakes</li>
+            <li>Productos de temporada</li>
+            <li>Brownies</li>
+            <li>Pasteroles</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="bloque invertido">
+        <figure class="foto"><img src="img/nosotros-pasterol.jpg" alt="Pasterol personalizado con flores frescas" loading="lazy"></figure>
+        <div class="bloque-texto">
+          <h2>Pedidos personalizados</h2>
+          <p>Creamos el pastel de tus sueños para cualquier evento o cumpleaños. Trabajamos con dos modalidades principales:</p>
+          <ul>
+            <li><b>Pasteles tradicionales:</b> diseños clásicos y deliciosos. Solicítalo con mínimo 3 días de anticipación.</li>
+            <li><b>Pasteroles personalizados:</b> la combinación perfecta entre un pastel y nuestros icónicos cinnamon rolls.</li>
+          </ul>
+          <button type="button" class="btn" data-abrir-chat>Cotizar por chat</button>
+        </div>
+      </article>
+
+      <article class="bloque">
+        <figure class="foto"><img src="img/nosotros-mercadito.jpeg" alt="Mesa de Liz CakeShop en un mercadito" loading="lazy"></figure>
+        <div class="bloque-texto">
+          <h2>Mercaditos y pop-ups</h2>
+          <p>¡Nos encanta estar cerca de ti! Estamos con frecuencia en la ciudad. Sigue nuestras redes para enterarte de nuestra próxima ubicación.</p>
+          <a class="btn" href="https://www.instagram.com/LIZ_CakeShop" target="_blank" rel="noopener">Instagram</a>
+        </div>
+      </article>
+
+      <article class="bloque invertido">
+        <figure class="foto"><img src="img/nosotros-roles.jpg" alt="Charola de cinnamon rolls con nuez y chocolate" loading="lazy"></figure>
+        <div class="bloque-texto">
+          <h2>Pedidos especiales de roles</h2>
+          <p>¿Tienes un evento corporativo o reunión? Abrimos fechas exclusivas para horneado masivo de roles recién hechos.</p>
+          <button type="button" class="btn" data-abrir-chat>Pedir fecha</button>
+        </div>
+      </article>
+    </section>
+
+    <!-- ============ 4. CATÁLOGO ============ -->
+    <section id="catalogo" class="catalogo">
+      <h2 class="titulo-seccion">Catálogo y precios</h2>
+
+            <div class="catalogo-barra">
+        <label class="buscador">
+          <svg aria-hidden="true"><use href="#i-search"/></svg>
+          <input type="search" id="buscar" placeholder="Buscar" aria-label="Buscar postres">
+        </label>
+      </div>
+
+      <!-- Las tarjetas se generan desde Supabase (ver app.js) -->
+      <div id="grid-productos" class="grid-productos" aria-live="polite">
+        <p class="estado-carga">Cargando postres…</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ 5. CONTACTO / FOOTER ============ -->
+  <footer id="contacto" class="footer">
+    <div class="footer-intro">
+      <h2>¡Queremos estar en contacto contigo!</h2>
+      <p>¿Tienes dudas, quieres un pedido especial o visitarnos en mercaditos?</p>
+    </div>
+
+    <div class="footer-cols">
+      <div class="footer-info">
+        <h3>Información de contacto</h3>
+        <p><b>Ubicación:</b><br>Escobedo, China, General Bravo; Nuevo León.</p>
+        <p><b>Horarios:</b><br>Lunes a sábado, 9:00 a 18:00. Pedidos personalizados con 3 días de anticipación.</p>
+        <p><b>Redes sociales:</b><br>
+          Instagram: <a href="https://www.instagram.com/LIZ_CakeShop" target="_blank" rel="noopener">@LIZ_CakeShop</a><br>
+          TikTok: <a href="https://www.tiktok.com/@lizcakeshop" target="_blank" rel="noopener">lizcakeshop</a>
+        </p>
+      </div>
+
+      <form id="form-contacto" class="form-contacto" novalidate>
+        <h3>Envíanos un mensaje rápido</h3>
+        <label>Nombre completo
+          <input type="text" name="nombre" maxlength="120" required autocomplete="name">
+        </label>
+        <label>Correo electrónico
+          <input type="email" name="correo" maxlength="200" required autocomplete="email">
+        </label>
+        <label>¿Qué duda tienes?
+          <textarea name="mensaje" rows="3" maxlength="2000" required></textarea>
+        </label>
+        <div class="form-pie">
+          <p id="contacto-estado" role="status" aria-live="polite"></p>
+          <button type="submit" class="btn">Enviar</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="footer-base">
+      <span class="brand-mini"><img src="img/logo.png" alt="Liz CakeShop"></span>
+      <small>© 2026 Liz CakeShop. Todos los derechos reservados.</small>
+      <a class="enlace-admin" href="login.html">👤 Acceso Administrativo</a>
+    </div>
+  </footer>
+
+  <!-- ============ MODAL: DETALLE DE PRODUCTO ============ -->
+  <dialog id="dlg-producto" class="modal" aria-labelledby="pd-nombre">
+    <button type="button" class="modal-volver" data-cerrar aria-label="Volver al catálogo">←</button>
+    <div class="detalle">
+      <figure class="foto"><img id="pd-img" alt=""></figure>
+      <div class="detalle-info">
+        <h2 id="pd-nombre"></h2>
+        <div id="pd-stepper"></div>
+        <p id="pd-precio" class="precio"></p>
+        <button type="button" id="pd-agregar" class="btn btn-claro">Agregar al carrito</button>
+        <p id="pd-notas" class="detalle-notas"></p>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ============ MODAL: CARRITO ============ -->
+  <dialog id="dlg-carrito" class="modal modal-carrito" aria-labelledby="carrito-titulo">
+    <button type="button" class="modal-volver" data-cerrar aria-label="Cerrar carrito">←</button>
+    <h2 id="carrito-titulo" class="titulo-carrito">Tu carrito</h2>
+    <div class="carrito-cabecera" aria-hidden="true"><span>Producto</span><span>Cantidad</span><span>Total</span></div>
+    <div id="carrito-items"></div>
+    <div class="carrito-pie">
+      <p class="carrito-total">Total: <b id="carrito-total">$0.00 MXN</b></p>
+      <button type="button" id="carrito-siguiente" class="btn">Siguiente</button>
+    </div>
+  </dialog>
+
+  <!-- ============ 6. WIDGET DE CHAT ============ -->
+  <button type="button" id="chat-toggle" class="chat-toggle" aria-label="Abrir chat" aria-expanded="false" aria-controls="chat-panel">
+    <svg aria-hidden="true"><use href="#i-chat"/></svg>
+  </button>
+
+  <section id="chat-panel" class="chat-panel" aria-label="Chat con Liz CakeShop" hidden>
+    <header class="chat-cabecera">
+      <div>
+        <strong>Liz CakeShop</strong>
+        <span class="en-linea"><i aria-hidden="true"></i>En línea</span>
+      </div>
+      <button type="button" id="chat-cerrar" aria-label="Cerrar chat">×</button>
+    </header>
+    <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
+    <form id="chat-form" class="chat-form">
+      <input id="chat-input" type="text" maxlength="500" placeholder="Escribe tu mensaje" autocomplete="off" required aria-label="Mensaje">
+      <button type="submit" aria-label="Enviar mensaje"><svg aria-hidden="true"><use href="#i-send"/></svg></button>
+    </form>
+  </section>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Librería oficial de Supabase (CDN) y lógica de la página -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+  <script src="checkout.js"></script>
+<script src="chatbot.js"></script>
+</body>
+</html>

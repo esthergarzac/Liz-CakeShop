@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Panel | Liz CakeShop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="cargando">
+  <header class="top">
+    <div class="usuario">
+      <span class="avatar" aria-hidden="true">👤</span>
+      <div>
+        <b id="u-nombre">Cargando…</b>
+        <button type="button" id="btn-salir" class="salir">Cerrar sesión</button>
+      </div>
+    </div>
+    <img class="logo" src="img/logo.png" alt="Liz CakeShop">
+    <nav id="tabs" class="tabs" aria-label="Secciones del panel">
+      <button type="button" data-vista="inicio" class="activa">Inicio</button>
+      <button type="button" data-vista="insumos">Insumos</button>
+      <button type="button" data-vista="productos">Productos</button>
+      <button type="button" data-vista="usuarios" hidden>Usuarios</button>
+    </nav>
+  </header>
+
+  <main id="vista" aria-live="polite"></main>
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app-admin.js"></script>
+</body>
+</html>

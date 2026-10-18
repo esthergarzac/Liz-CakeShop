@@ -1,0 +1,103 @@
+/* =====================================================================
+   LIZ CAKESHOP - Pantalla de inicio de sesión (réplica del prototipo)
+   ===================================================================== */
+:root {
+  --fondo: #fed9ea;
+  --tinto: #b25a6b;
+  --tinto-osc: #964657;
+  --titulo: #b84f6b;
+  --campo: #f4f4f4;
+  --error: #9b1c1c;
+  --f-texto: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--f-texto);
+  background: var(--fondo);
+  color: #2b2226;
+}
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+:focus-visible { outline: 3px solid var(--tinto-osc); outline-offset: 3px; }
+
+/* Distribución: logo arriba, formulario centrado debajo */
+.login {
+  min-height: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  padding: clamp(1rem, 3vh, 2rem) 1.25rem 2rem;
+}
+.logo img { display: block; height: clamp(5rem, 14vh, 7.5rem); width: auto; }
+
+.panel {
+  width: min(100%, 22rem);
+  margin-top: clamp(2rem, 11vh, 6rem);
+  display: flex; flex-direction: column; align-items: stretch; text-align: center;
+}
+h1 {
+  margin: 0 0 1.1rem;
+  font-size: 1.2rem; font-weight: 800; color: var(--titulo);
+}
+
+form { display: grid; gap: 1rem; }
+
+/* Campos en forma de píldora con sombra suave */
+input {
+  width: 100%;
+  padding: .8rem 1.1rem;
+  border: 1px solid #cfcfcf;
+  border-radius: 999px;
+  background: var(--campo);
+  font: 400 .85rem var(--f-texto);
+  color: #2b2226;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .15);
+}
+input::placeholder { color: #9b9b9b; }
+
+.campo-clave { position: relative; }
+.campo-clave input { padding-right: 3rem; }
+.ojo {
+  position: absolute; top: 50%; right: .9rem; transform: translateY(-50%);
+  display: grid; place-items: center; width: 1.8rem; height: 1.8rem;
+  border: 0; background: none; color: #555; cursor: pointer;
+}
+.ojo svg { width: 1.3rem; height: 1.3rem; }
+.ojo svg[hidden] { display: none; }
+
+.error {
+  margin: 0; padding: .6rem .9rem;
+  border-radius: 12px; background: #fff; color: var(--error);
+  font-size: .85rem; font-weight: 500; text-align: left;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
+}
+.error[hidden] { display: none; }
+
+.btn-ingresar {
+  padding: .85rem 1rem;
+  border: 0; border-radius: 999px;
+  background: var(--tinto); color: #fff;
+  font: 800 1rem var(--f-texto); letter-spacing: .02em;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, .25);
+  cursor: pointer; transition: background .2s;
+}
+.btn-ingresar:hover { background: var(--tinto-osc); }
+.btn-ingresar:disabled { opacity: .7; cursor: progress; }
+
+/* Enlaces sutiles */
+.enlace {
+  margin-top: .7rem; padding: 0;
+  border: 0; background: none;
+  font: 700 .7rem var(--f-texto); color: #fff; text-decoration: none; cursor: pointer;
+}
+.enlace:hover { text-decoration: underline; }
+.enlace.volver { margin-top: 1.2rem; font-weight: 500; color: var(--tinto-osc); }
+.ayuda {
+  margin: .6rem 0 0; padding: .6rem .8rem;
+  border-radius: 12px; background: rgba(255, 255, 255, .7);
+  font-size: .8rem; color: #5a3a44;
+}
+.ayuda[hidden] { display: none; }
