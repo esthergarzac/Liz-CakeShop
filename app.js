@@ -293,6 +293,7 @@ $('#form-contacto').addEventListener('submit', async (e) => {
 const panelChat = $('#chat-panel');
 const logChat = $('#chat-log');
 let mensajesEnviados = 0;
+const idChat = Math.random().toString(36).slice(2, 7).toUpperCase();
 
 const hora = () => new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 
@@ -335,7 +336,7 @@ $('#chat-form').addEventListener('submit', async (e) => {
   mensajesEnviados += 1;
 
   const { error } = await db.from('mensajes_contacto').insert({
-    nombre: 'Visitante (chat)',
+    nombre: `Chat ${idChat}`,
     mensaje: texto,
     origen: 'chat',
   });

@@ -17,8 +17,8 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ---------- A dónde va cada rol ---------- */
 const DESTINOS = {
-  'Administrador': 'dashboard-admin.html',
-  'Empleado': 'dashboard-empleado.html',
+  'Administrador': 'dashboard.html',
+  'Empleado': 'dashboard.html',
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -84,6 +84,7 @@ form.addEventListener('submit', async (e) => {
   // 2) Consultar el rol
   const rol = await obtenerRol(data.user.id);
   const destino = DESTINOS[rol];
+  
 
   if (!destino) {
     await db.auth.signOut();

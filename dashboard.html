@@ -13,7 +13,7 @@
 <body class="cargando">
   <header class="top">
     <div class="usuario">
-      <span class="avatar" aria-hidden="true">👤</span>
+      <span class="avatar" aria-hidden="true"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3.2"/><path d="M5.5 18.5c1.6-3 4-4 6.5-4s4.9 1 6.5 4"/></svg></span>
       <div>
         <b id="u-nombre">Cargando…</b>
         <button type="button" id="btn-salir" class="salir">Cerrar sesión</button>
@@ -24,6 +24,8 @@
       <button type="button" data-vista="inicio" class="activa">Inicio</button>
       <button type="button" data-vista="insumos">Insumos</button>
       <button type="button" data-vista="productos">Productos</button>
+      <button type="button" data-vista="pedidos">Pedidos<span class="badge" id="b-pedidos" hidden></span></button>
+      <button type="button" data-vista="mensajes">Mensajes<span class="badge" id="b-mensajes" hidden></span></button>
       <button type="button" data-vista="usuarios" hidden>Usuarios</button>
     </nav>
   </header>

@@ -7,7 +7,7 @@
 
 /* ---------- 1) Conexión (pega tu publishable key; NUNCA la secret) ---------- */
 const SUPABASE_URL = 'https://qakkmauzrkbnoivjktup.supabase.co';
-const SUPABASE_KEY = 'PEGA_AQUI_TU_PUBLISHABLE_KEY';
+const SUPABASE_KEY = 'sb_publishable_tB8MgKD6HINhXzG2CgmcAA_G2zq6kDI';
 const BUCKET = 'Productos';                       // bucket de fotos (respeta mayúsculas)
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -35,11 +35,16 @@ function urlFoto(v) {
 // Estado de inventario (misma regla que la base: crítico <= 50% del mínimo)
 const estIns = (i) => (i.stock_actual <= i.stock_minimo * 0.5 ? ['Crítico', 'crit'] : i.stock_actual <= i.stock_minimo ? ['Bajo stock', 'bajo'] : ['En stock', 'ok']);
 const estProd = (p) => (p.stock <= 0 ? ['Sin stock', 'crit'] : p.stock <= p.stock_minimo ? ['Bajo stock', 'bajo'] : null);
+const pl = (n, s1, sn) => `${n} ${n === 1 ? s1 : sn}`;            // 1 usuario / 2 usuarios
+const ICO_BUSCAR = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>';
+const ICO_USER = '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3.2"/><path d="M5.5 18.5c1.6-3 4-4 6.5-4s4.9 1 6.5 4"/></svg>';
+const paso = (u) => ({ kg: 0.5, L: 0.5, g: 100, ml: 100 }[u] || 1);   // salto de los botones + y -
+const fechaHora = (d) => new Date(d).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
 const buscar = (lista, id) => lista.find((x) => String(x.id) === String(id));
 
 /* ---------- 3) Sesión y rol ---------- */
 let yo, esAdmin = false, vista = 'inicio';
-let roles = [], categorias = [], insumos = [], productos = [], usuarios = [];
+let roles = [], categorias = [], insumos = [], productos = [], usuarios = [], pedidos = [], mensajes = [];
 
 async function iniciar() {
   const { data: { session } } = await db.auth.getSession();
@@ -66,23 +71,25 @@ async function cargar() {
     db.from('insumos').select('*, categorias_insumos(nombre)').order('nombre'),
     db.from('productos').select('*').order('nombre'),
     esAdmin ? db.from('usuarios').select('id, nombre_completo, username, activo, rol_id, roles(nombre)').order('nombre_completo') : Promise.resolve({ data: [] }),
+    db.from('pedidos').select('*, pedido_items(nombre, cantidad, precio_unitario)').order('created_at', { ascending: false }),
+    db.from('mensajes_contacto').select('*').order('created_at', { ascending: false }).limit(300),
   ]);
   const falla = r.find((x) => x.error);
   if (falla) { console.error(falla.error); toast('No se pudieron cargar algunos datos.'); }
-  [roles, categorias, insumos, productos, usuarios] = r.map((x) => x.data || []);
+  [roles, categorias, insumos, productos, usuarios, pedidos, mensajes] = r.map((x) => x.data || []);
 }
 const recargar = async () => { await cargar(); ir(vista); };
 
 /* ---------- 5) Vistas ---------- */
-const buscador = (txt) => `<label class="buscador"><span aria-hidden="true">🔍</span><input id="buscar" type="search" placeholder="Buscar" aria-label="${txt}"></label>`;
+const buscador = (txt) => `<label class="buscador">${ICO_BUSCAR}<input id="buscar" type="search" placeholder="Buscar" aria-label="${txt}"></label>`;
 const barra = (n, v) => `<div class="barra-fila"><span>${esc(n)}</span><div class="barra"><i style="width:${v}%"></i></div><b>${v}%</b></div>`;
 
 function vInicio() {
   const crit = insumos.filter((i) => estIns(i)[1] === 'crit').length;
   const bajos = productos.filter((p) => p.stock <= p.stock_minimo).length;
   const alertas = [
-    ...insumos.filter((i) => i.stock_actual <= i.stock_minimo).map((i) => ({ t: 'Insumo', k: 'i', id: i.id, n: i.nombre, s: `${num(i.stock_actual)} ${i.unidad_medida}`, rojo: estIns(i)[1] === 'crit', a: 'Surtir' })),
-    ...productos.filter((p) => p.stock <= p.stock_minimo).map((p) => ({ t: 'Producto', k: 'p', id: p.id, n: p.nombre, s: `${p.stock} un`, rojo: p.stock <= 0, a: 'Producir' })),
+    ...insumos.filter((i) => i.stock_actual <= i.stock_minimo).map((i) => ({ t: 'Insumo', k: 'i', id: i.id, n: i.nombre, s: `${num(i.stock_actual)} ${i.unidad_medida}`, e: estIns(i), a: 'Surtir' })),
+    ...productos.filter((p) => p.stock <= p.stock_minimo).map((p) => ({ t: 'Producto', k: 'p', id: p.id, n: p.nombre, s: `${p.stock} un`, e: p.stock <= 0 ? ['Sin stock', 'crit'] : ['Bajo stock', 'bajo'], a: 'Producir' })),
   ];
   const total = insumos.reduce((s, i) => s + Number(i.stock_actual), 0) || 1;
   const top = [...insumos].sort((a, b) => b.stock_actual - a.stock_actual).slice(0, 3);
@@ -91,28 +98,33 @@ function vInicio() {
   const cats = Object.entries(porCat).sort((a, b) => b[1] - a[1]).slice(0, 3);
   const ahora = new Date();
   const fecha = ahora.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  // Estado en una etiqueta (el color indica la gravedad); la acción siempre es el mismo botón
   const filas = alertas.map((a) => `<tr><td>${a.t}</td><td>${esc(a.n)}</td><td>${esc(a.s)}</td>
-    <td><button class="pill ${a.rojo ? 'rojo' : ''}" data-a="ajustar" data-k="${a.k}" data-id="${a.id}">${a.a}</button></td></tr>`).join('');
+    <td><span class="chip ${a.e[1]}">${a.e[0]}</span></td>
+    <td><button class="btn btn-peq" data-a="ajustar" data-k="${a.k}" data-id="${a.id}">${a.a}</button></td></tr>`).join('');
 
   return `<div class="cab">
-    <h1>¡Hola, ${esc(yo.nombre_completo.split(' ')[0])}! 👋<br>Resumen del sistema al día de hoy:</h1>
+    <h1>¡Hola, ${esc(yo.nombre_completo.split(' ')[0])}!<br>Resumen del sistema al día de hoy:</h1>
     <div class="kpis">
-      <div class="kpi">Insumos críticos<b>${crit} items</b></div>
-      <div class="kpi">Productos bajos en stock<b>${bajos} items</b></div>
-      ${esAdmin ? `<div class="kpi">Usuarios activos<b>${usuarios.filter((u) => u.activo).length} usuarios</b></div>` : ''}
+      <div class="kpi">Insumos críticos<b>${pl(crit, 'item', 'items')}</b></div>
+      <div class="kpi">Productos bajos en stock<b>${pl(bajos, 'item', 'items')}</b></div>
+      ${esAdmin ? `<div class="kpi">Usuarios activos<b>${pl(usuarios.filter((u) => u.activo).length, 'usuario', 'usuarios')}</b></div>` : ''}
+      <button class="kpi" data-a="ir" data-v="pedidos">Pedidos pendientes<b>${pl(pendPed(), 'pedido', 'pedidos')}</b></button>
+      <button class="kpi" data-a="ir" data-v="mensajes">Mensajes sin atender<b>${pl(pendMsg(), 'mensaje', 'mensajes')}</b></button>
     </div>
     <button class="btn" data-a="ajustar">+ Ajustar Stock</button>
   </div>
   <div class="medio">
-    <section class="card"><h3>⚠️ Alertas de atención urgente:</h3>
-      <table class="alertas"><thead><tr><th>Tipo</th><th>Elemento</th><th>Estado</th><th>Acción</th></tr></thead>
-      <tbody>${filas || '<tr><td colspan="4">¡Todo en orden! No hay alertas.</td></tr>'}</tbody></table></section>
-    <section class="card fecha"><h3>🗓️ ${esc(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</h3><b>Última actualización:</b>${ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}</section>
+    <section class="card"><h3>Alertas de atención urgente:</h3>
+      <table class="alertas"><thead><tr><th>Tipo</th><th>Elemento</th><th>Existencia</th><th>Estado</th><th>Acción</th></tr></thead>
+      <tbody>${filas || '<tr><td colspan="5">Todo en orden. No hay alertas.</td></tr>'}</tbody></table></section>
+    <section class="card fecha"><h3>${esc(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</h3><b>Última actualización:</b>${ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}</section>
     <section class="card acciones-rapidas"><h3>Acciones rápidas:</h3>
       <button class="btn" data-a="nuevo-i">+ Nuevo insumo</button><button class="btn" data-a="nuevo-p">+ Nuevo producto</button>
+      <button class="btn" data-a="ir" data-v="pedidos">Ver pedidos</button><button class="btn" data-a="ir" data-v="mensajes">Ver mensajes</button>
       ${esAdmin ? '<button class="btn" data-a="ir" data-v="usuarios">Ver usuarios</button>' : ''}</section>
   </div>
-  <div class="bajo">
+  <div class="fila-baja">
     <section class="card"><h3>Insumos con más existencias:</h3>${top.map((i) => barra(i.nombre, Math.round((i.stock_actual / total) * 100))).join('') || 'Sin datos'}
       <p class="nota">Porcentaje sobre el total de existencias registradas.</p></section>
     <section class="card"><h3>Categorías con más stock:</h3>${cats.map(([n, v]) => barra(n, Math.round((v / total) * 100))).join('') || 'Sin datos'}</section>
@@ -123,7 +135,7 @@ function vInsumos() {
   const filas = insumos.map((i) => {
     const [t, c] = estIns(i); const cat = i.categorias_insumos?.nombre || '—';
     return `<tr data-q="${esc(`${i.nombre} ${cat}`.toLowerCase())}"><td>${esc(i.nombre)}</td><td>${esc(cat)}</td>
-      <td><span class="stepper"><button data-a="menos-i" data-id="${i.id}" aria-label="Quitar uno">−</button>${num(i.stock_actual)} ${esc(i.unidad_medida)}<button data-a="mas-i" data-id="${i.id}" aria-label="Agregar uno">+</button></span></td>
+      <td><span class="stepper"><button data-a="menos-i" data-id="${i.id}" aria-label="Quitar uno">−</button><button class="val" data-a="ajustar" data-k="i" data-id="${i.id}" title="Clic para escribir la cantidad exacta">${num(i.stock_actual)} ${esc(i.unidad_medida)}</button><button data-a="mas-i" data-id="${i.id}" aria-label="Agregar uno">+</button></span></td>
       <td><span class="chip ${c}">${t}</span></td>
       <td><button class="mas" data-a="menu-i" data-id="${i.id}" aria-label="Opciones de ${esc(i.nombre)}">⋮</button></td></tr>`;
   }).join('');
@@ -136,7 +148,7 @@ function vProductos() {
   const tarjetas = productos.map((p) => {
     const e = estProd(p); const f = urlFoto(p.foto_url);
     return `<article class="tarjeta" data-q="${esc(p.nombre.toLowerCase())}">${e ? `<span class="insignia ${e[1]}">${e[0]}</span>` : ''}
-      <div class="foto">${f ? `<img src="${esc(f)}" alt="${esc(p.nombre)}" loading="lazy">` : '🍰'}</div>
+      <div class="foto">${f ? `<img src="${esc(f)}" alt="${esc(p.nombre)}" loading="lazy">` : '<span class="sin-foto">Sin foto</span>'}</div>
       <div class="t-cuerpo"><h3>${esc(p.nombre)}</h3><p>Stock: ${p.stock} unidades</p><p class="precio">${mxn(p.precio_mxn)}</p>
         <span class="stepper rosa"><button data-a="menos-p" data-id="${p.id}" aria-label="Quitar uno">−</button>${p.stock}<button data-a="mas-p" data-id="${p.id}" aria-label="Agregar uno">+</button></span></div>
       <button class="mas" data-a="menu-p" data-id="${p.id}" aria-label="Opciones de ${esc(p.nombre)}">⋮</button></article>`;
@@ -147,10 +159,51 @@ function vProductos() {
 
 function vUsuarios() {
   const tarjetas = usuarios.map((u) => `<article class="card u-card" data-q="${esc(`${u.nombre_completo} ${u.username}`.toLowerCase())}">
-    <div class="u-av">👤<i class="${u.activo ? '' : 'off'}"></i></div>
+    <div class="u-av">${ICO_USER}<i class="${u.activo ? '' : 'off'}"></i></div>
     <div class="u-info"><b>${esc(u.roles?.nombre || 'Sin rol')}</b><br>Nombre: ${esc(u.nombre_completo)}<br>User name: ${esc(u.username)}</div>
     <button class="btn" data-a="edit-u" data-id="${u.id}">Editar</button></article>`).join('');
   return `<div class="herr">${buscador('Buscar usuarios')}<button class="mas-btn" data-a="nuevo-u" aria-label="Agregar usuario">+</button></div><div class="usuarios">${tarjetas}</div>`;
+}
+
+const CLS_PED = { Pendiente: 'bajo', Confirmado: 'ok', Entregado: 'neutro', Cancelado: 'crit' };
+const pendPed = () => pedidos.filter((p) => p.estado === 'Pendiente').length;
+function gruposMsg() {                       // los mensajes del chat de un mismo visitante se agrupan
+  const m = new Map();
+  mensajes.forEach((x) => { const k = x.origen === 'chat' ? `chat|${x.nombre}` : `c|${x.id}`; if (!m.has(k)) m.set(k, []); m.get(k).push(x); });
+  return [...m.values()];
+}
+const pendMsg = () => gruposMsg().filter((g) => g.some((m) => !m.leido)).length;
+function badges() {
+  [['pedidos', pendPed()], ['mensajes', pendMsg()]].forEach(([k, n]) => { const b = $(`#b-${k}`); b.textContent = n; b.hidden = !n; });
+}
+
+function vPedidos() {
+  const tarjetas = pedidos.map((p) => `<article class="card pedido" data-q="${esc(`${p.id} ${p.nombre_cliente} ${p.telefono} ${p.estado}`.toLowerCase())}">
+    <div class="ped-cab"><b>Pedido #${p.id}</b>
+      <select class="sel-estado ${CLS_PED[p.estado]}" data-ped="${p.id}" aria-label="Estado del pedido ${p.id}">
+        ${Object.keys(CLS_PED).map((e) => `<option${e === p.estado ? ' selected' : ''}>${e}</option>`).join('')}</select></div>
+    <dl class="datos"><dt>Cliente</dt><dd>${esc(p.nombre_cliente)}</dd><dt>Teléfono</dt><dd>${esc(p.telefono)}</dd>
+      ${p.correo ? `<dt>Correo</dt><dd>${esc(p.correo)}</dd>` : ''}
+      <dt>Fecha requerida</dt><dd>${new Date(`${p.fecha_requerida}T12:00:00`).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</dd>
+      <dt>Entrega</dt><dd>${p.entrega === 'Recoger' ? 'Recoger' : 'A domicilio'}</dd>
+      ${p.notas ? `<dt>Notas</dt><dd>${esc(p.notas)}</dd>` : ''}<dt>Recibido</dt><dd>${fechaHora(p.created_at)}</dd></dl>
+    <ul class="items">${(p.pedido_items || []).map((i) => `<li>${i.cantidad} × ${esc(i.nombre)} — ${mxn(i.precio_unitario * i.cantidad)}</li>`).join('')}</ul>
+    <p class="total">Total: ${mxn(p.total)}</p></article>`).join('');
+  return `<div class="herr">${buscador('Buscar pedidos')}</div><div class="lista">${tarjetas || '<p>Aún no hay pedidos.</p>'}</div>`;
+}
+
+function vMensajes() {
+  const tarjetas = gruposMsg().map((g) => {
+    const ult = g[0]; const pend = g.some((m) => !m.leido);
+    const datos = g.find((m) => m.correo || m.telefono) || ult;
+    return `<article class="card pedido" data-q="${esc(g.map((m) => `${m.nombre} ${m.mensaje}`).join(' ').toLowerCase())}">
+      <div class="ped-cab"><b>${ult.origen === 'chat' ? 'Chat' : 'Contacto'} · ${esc(ult.origen === 'chat' ? ult.nombre.replace('Chat ', 'Visitante ') : ult.nombre)}</b>
+        <span class="chip ${pend ? 'bajo' : 'ok'}">${pend ? 'Sin atender' : 'Atendido'}</span></div>
+      ${datos.correo ? `<p class="msg-linea">Correo: ${esc(datos.correo)}</p>` : ''}${datos.telefono ? `<p class="msg-linea">Teléfono: ${esc(datos.telefono)}</p>` : ''}
+      <ul class="items">${[...g].reverse().map((m) => `<li>${esc(m.mensaje)} <small>(${fechaHora(m.created_at)})</small></li>`).join('')}</ul>
+      <button class="btn btn-peq" data-a="atender" data-id="${ult.id}">${pend ? 'Marcar como atendido' : 'Reabrir'}</button></article>`;
+  }).join('');
+  return `<div class="herr">${buscador('Buscar mensajes')}</div><div class="lista">${tarjetas || '<p>Aún no hay mensajes.</p>'}</div>`;
 }
 
 function ir(v) {
@@ -158,7 +211,8 @@ function ir(v) {
   vista = v;
   document.querySelectorAll('[data-vista]').forEach((b) => b.classList.toggle('activa', b.dataset.vista === v));
   const y = window.scrollY;
-  $('#vista').innerHTML = { inicio: vInicio, insumos: vInsumos, productos: vProductos, usuarios: vUsuarios }[v]();
+  $('#vista').innerHTML = { inicio: vInicio, insumos: vInsumos, productos: vProductos, usuarios: vUsuarios, pedidos: vPedidos, mensajes: vMensajes }[v]();
+  badges();
   window.scrollTo(0, y);
 }
 
@@ -211,7 +265,7 @@ async function borrar(tabla, id) { await run(db.from(tabla).delete().eq('id', id
 
 async function cambiarStock(tabla, lista, campoStock, id, delta) {
   const x = buscar(lista, id); if (!x) return;
-  const nuevo = Math.max(0, Number(x[campoStock]) + delta);
+  const nuevo = Math.max(0, Math.round((Number(x[campoStock]) + delta) * 100) / 100);
   const { error } = await db.from(tabla).update({ [campoStock]: nuevo }).eq('id', id);
   if (error) { console.error(error); return toast('No se pudo actualizar el stock.'); }
   x[campoStock] = nuevo; ir(vista);
@@ -306,8 +360,8 @@ const menuFila = (tabla, lista, form, id) => {
 };
 const ACCIONES = {
   ir: (_, b) => ir(b.dataset.v),
-  'mas-i': (id) => cambiarStock('insumos', insumos, 'stock_actual', id, 1),
-  'menos-i': (id) => cambiarStock('insumos', insumos, 'stock_actual', id, -1),
+  'mas-i': (id) => cambiarStock('insumos', insumos, 'stock_actual', id, paso(buscar(insumos, id)?.unidad_medida)),
+  'menos-i': (id) => cambiarStock('insumos', insumos, 'stock_actual', id, -paso(buscar(insumos, id)?.unidad_medida)),
   'mas-p': (id) => cambiarStock('productos', productos, 'stock', id, 1),
   'menos-p': (id) => cambiarStock('productos', productos, 'stock', id, -1),
   'nuevo-i': () => formInsumo(),
@@ -317,6 +371,12 @@ const ACCIONES = {
   'menu-nuevo': () => opciones('Agregar', [['Agregar insumo', () => formInsumo()], ['Agregar categoría', formCategoria]]),
   'menu-i': (id) => menuFila('insumos', insumos, formInsumo, id),
   'menu-p': (id) => menuFila('productos', productos, formProducto, id),
+  atender: async (id) => {                                   // marcar mensaje / chat como atendido
+    const m = buscar(mensajes, id); if (!m) return;
+    const q = db.from('mensajes_contacto').update({ leido: !m.leido });
+    try { await run(m.origen === 'chat' ? q.eq('nombre', m.nombre).eq('origen', 'chat') : q.eq('id', m.id)); await recargar(); }
+    catch (x) { toast(x.message); }
+  },
   ajustar: (id, b) => formAjuste(id ? `${b.dataset.k}:${id}` : ''),
 };
 document.addEventListener('click', (e) => {
@@ -331,5 +391,13 @@ document.addEventListener('input', (e) => {
 });
 $('#tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-vista]'); if (b) ir(b.dataset.vista); });
 $('#btn-salir').addEventListener('click', async () => { await db.auth.signOut(); location.replace('login.html'); });
+
+// Cambiar el estado de un pedido desde su lista desplegable
+document.addEventListener('change', async (e) => {
+  const sl = e.target.closest('[data-ped]'); if (!sl) return;
+  const { error } = await db.from('pedidos').update({ estado: sl.value }).eq('id', sl.dataset.ped);
+  if (error) { console.error(error); toast('No se pudo cambiar el estado.'); await recargar(); return; }
+  buscar(pedidos, sl.dataset.ped).estado = sl.value; toast('Estado actualizado'); ir(vista);
+});
 
 iniciar();
